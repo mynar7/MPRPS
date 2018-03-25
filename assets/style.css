@@ -1,0 +1,18 @@
+#chat {
+    height: 250px;
+    /* makes the scroll bar stay at the bottom */
+    overflow: auto;
+    display: flex;
+    flex-direction: column-reverse;
+    background-color: black;
+    color: yellow;
+}
+
+#sysMsg {
+    color: red;
+    font-weight: 900;
+}
+
+ul {
+    list-style-type: none;
+}

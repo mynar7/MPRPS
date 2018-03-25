@@ -80,6 +80,15 @@ userCons.on("value", function(userList){
     
     } //end if userList.val
 }); //end userCons call
+
+//chat listener function
+$('#enter').on("click", function(event){
+    event.preventDefault();
+    let str = $('#textInput').val().trim();
+    chatPrint(userName, str);
+    $('#textInput').val("");
+});
+
 function changeName(str) {
     userName = str;
     userRef.update({
@@ -94,19 +103,73 @@ function assignChat() {
 }
 
 function chatPrint(name, str) {
-    dataRef.child('chat').update({
-        lastMsg: str,
-        msgBy: name
-    });
+    str = parseInput(str);
+    if(str !== false) {
+        dataRef.child('chat').update({
+            lastMsg: str,
+            msgBy: name
+        });
+    }//end if
 }
 function chatUpdate(name, str) {
     let chatBox = $('#chat');
-    chatBox.append('<br>' + name + ': ' + str);
+    // chatBox.append('<p>' + name + ': ' + str + '</p>');
+    $('<li>').html(name + ': ' + str).prependTo(chatBox);
 }
  
-$('#enter').on("click", function(event){
-    event.preventDefault();
-    let str = $('#textInput').val().trim();
-    chatPrint(userName, str);
-    $('#textInput').val("");
-});
+function roll(num) {
+    let sides = 20;
+    if(arguments.length == 1) {
+        sides = num;
+    }
+    return Math.floor(Math.random() * sides) + 1;
+}
+
+//this function handles user chat input by calling fx based on if the user entered a string that starts with /
+function parseInput(str) {
+    if(str.startsWith('/')) {
+        let index = str.indexOf(" ");
+        let command;
+        if(index == -1) {
+            command = str.slice(1);
+        } else {
+            command = str.slice(1, index)
+        }
+        let helpText = "<span id='sysMsg'><br>Commands:<br>/help : get list of commands<br>/name -new name- : change user name<br>/roll # : rolls a # sided die (if # omitted, # is 20)</span>";
+        switch(command) {
+            case "name":
+                let newName = str.slice(index + 1);
+                if(index == -1) {
+                    chatUpdate("System", "<span id='sysMsg'>Usage: /name -new name- : change user name</span>");
+                    return false;
+                } else {
+                    changeName(newName);
+                    return "<span id='sysMsg'>name changed to " + newName + "</span>";
+                }
+            break;
+            case "roll":
+                if(index == -1) {
+                    return "<span id='sysMsg'>Rolled a 20 sided die! Result: " + roll() + "</span>";
+                } else {
+                    let int = parseInt(str.slice(index + 1));
+                    if(isNaN(int)) {
+                        chatUpdate("System", "<span id='sysMsg'>Usage: /roll # : rolls a # sided die</span>");
+                        return false;
+                    } else {
+                        return "<span id='sysMsg'>Rolled a " + int + " sided die! Result: " + roll(int) + "</span>";                        
+                    }
+                }
+            break;
+            case "help":
+                chatUpdate("System", helpText);
+                return false;
+            break;
+            default:
+                chatUpdate("System", "<span id='sysMsg'>try /help for commands</span>");
+                return false;
+            break;
+        }
+    } else {
+        return str;
+    }
+}
