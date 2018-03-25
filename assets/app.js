@@ -17,6 +17,9 @@ let dataRef;
 let userRef;
 let opponentRef;
 let lobbyRef;
+let winCount;
+let lossCount;
+let drawCount;
 let myTurn = false;
 //grab the firebase connections reference
 let userCons = db.ref('.info/connected');
@@ -124,12 +127,11 @@ function assignTurn() {
         if(x === JSON.stringify(userRef)) {
             //if this client's userRef, set var myTurn true, else false
             myTurn = true;
-            console.log("my Turn");
+            $('#status').empty();
+            $('<li>').html("It's your turn.").appendTo("#status");
         } else {
             myTurn = false;
             opponentRef = x;
-            console.log("Not my turn");
-            //console.log("look here ", opponentRef);
         }
         //run function to enable/disable RPS buttons based on myTurn boolean
         toggleButtons(myTurn);
@@ -160,6 +162,9 @@ function toggleButtons(bool) {
             x[i].removeAttribute("disabled");
         }
     } else {
+        if(opponentRef) {
+            $('<li>').html("Waiting for Opponent.").appendTo("#status");                    
+        }
         var x = document.getElementById("rpsBtnGrp").querySelectorAll('button');
         for (i = 0; i < x.length; i++) {
             x[i].setAttribute("disabled", "true");
@@ -170,13 +175,17 @@ function toggleButtons(bool) {
 $('#rpsBtnGrp').on("click", 'button', function(){
     //capture which choice
     let choice = $(this).html().toLowerCase();
+    //send choice to status
+    $('#status').empty();
+    $('<li>').html("Your choice: " + choice.toUpperCase()).appendTo('#status');
     //is there a choice there?
     dataRef.child('data/choices').once("value", function(snap){
         if(snap.val()){
             //if choice here, compare and assign winner, then delete that choice
             let oppChoice = snap.val().chose;
+            //send opponent choice to DOM
+            $('<li>').html("Opponent chose: " + oppChoice.toUpperCase()).appendTo('#status');
             //return bool or other for win/lose
-            console.log(rpsLogic(choice, oppChoice));
             //handle win/loss here. use client side counters for win/lose... you can't
             outcome(rpsLogic(choice, oppChoice));            
             dataRef.child('data/choices').remove();
@@ -252,6 +261,9 @@ function outcome(str) {
 
 //initialize score
 function initialScore() {
+    winCount = 0;
+    lossCount = 0;
+    drawCount = 0;
     dataRef.child('data/scores/' + userId).update({
         wins: 0,
         losses: 0,
@@ -330,11 +342,32 @@ function assignScore() {
                 $('#wins').html("Wins: " + wins);
                 $('#losses').html("Losses: " + losses);
                 $('#draws').html("Draws: " + draws);
+                if(winCount !== wins) {
+                    $('<li>').html("You won!").appendTo("#status");
+                    turnNotice();
+                }
+                if(lossCount !== losses) {
+                    $('<li>').html("You lost!").appendTo("#status");
+                    turnNotice();
+                }
+                if(drawCount !== draws) {
+                    $('<li>').html("It was a draw!").appendTo("#status");
+                    turnNotice();
+                }
+                winCount = wins;
+                lossCount = losses;
+                drawCount = draws;
             }
         });
     });
 }
-
+function turnNotice() {
+    if(myTurn) {
+        $('<li>').html("It's your turn.").appendTo("#status");                    
+    } else {
+        $('<li>').html("Waiting for Opponent.").appendTo("#status");                    
+    }
+}
 //assign a listener to DB chat message, then pass the most recent data to fx that prints to each user's window
 function assignChat() {
     dataRef.child('chat').on("value", function(snap){

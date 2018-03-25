@@ -5,33 +5,41 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>RPS With Friends!</title>
+    <link rel="stylesheet" href="./assets/reset.css">
     <link rel="stylesheet" href="./assets/style.css">
 </head>
 <body>
-    <div class="rps" id="rps">
-    <ul class="score" id="score">
-        <li id="wins"></li>
-        <li id="losses"></li>
-        <li id="draws"></li>
-    </ul>
-    <ul id="status" class="status"></ul>
-        <div class="rpsBtnGrp" id="rpsBtnGrp">
-            <button>Rock</button>
-            <button>Paper</button>
-            <button>Scissors</button>
-        </div><!--end btn grp-->
-    </div><!--end rps div-->
-    <div class="chatWrapper">
-
-        <ul class="chat" id="chat"></ul>
+    <header>ROCK PAPER SCISSORS</header>
+    <div class="content">
+        <div class="rps" id="rps">
+            <ul class="score" id="score">
+                <li id="wins"></li>
+                <li id="losses"></li>
+                <li id="draws"></li>
+            </ul><!--end score-->
+            <ul id="status" class="status">
+            </ul><!--end status ul -->
+            <div class="rpsBtnGrp" id="rpsBtnGrp">
+                <button>Rock</button>
+                <button>Paper</button>
+                <button>Scissors</button>
+            </div><!--end btn grp-->
+        </div><!--end rps div-->
+        <div class="chatWrapper">
+            <ul class="chat" id="chat">
+            </ul><!--end chat ul-->
+            <form>
+                <ul class="chatBtns">
+                    <li><input type="text" id="textInput"><button type="submit" id="enter">Submit</button></li>
+                    <li>
+                        <button type="button" id="clear">Clear Chatlog</button>
+                        <button type="submit">Reconnect</button>
+                    </li>
+                </ul>   
+            </form>
+        </div><!--end chat wrapper-->
+    </div><!--end content div-->
         
-        <form>
-            <input type="text" id="textInput">
-            <button type="submit" id="enter">Submit</button>
-            <button type="submit">Reconnect</button>
-        </form>
-    </div><!--end chat wrapper-->
-
     <!-- jQuery CDN -->
     <script
     src="https://code.jquery.com/jquery-3.3.1.js"
