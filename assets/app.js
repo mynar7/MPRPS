@@ -14,7 +14,9 @@ let db = firebase.database();
 let userName;
 let dataRef;
 let userRef;
+let opponentRef;
 let lobbyRef;
+let myTurn = false;
 //grab the firebase connections reference
 let userCons = db.ref('.info/connected');
 //make a reference for my lobbies folder on the database
@@ -28,6 +30,7 @@ userCons.on("value", function(userList){
                 makeLobby();
             } else {
                 let lobbied = false;
+                //if there's a lobby already with an empty slot, join it!
                 lobbiesSnap.forEach(function(lobbyUsers){
                     if (lobbyUsers.numChildren() === 1) {
                         //add to here, then return true to break forEach
@@ -44,7 +47,6 @@ userCons.on("value", function(userList){
                         let dataCon = dataRef.child('players').push("monkey");  
                         dataCon.onDisconnect().remove();
                         let playerData = dataRef.child('players').child(dataCon.path.n[3]);
-                        console.log(playerData);
                         playerData.update({
                             ref: JSON.stringify(userRef),
                         });
@@ -57,6 +59,14 @@ userCons.on("value", function(userList){
                         lobbied = true;
                         chatPrint(userName, "Joined Lobby");
                         changeTurn();
+                        //grab opponent reference
+                        dataRef.child('players').once("value", function(playerSnap){
+                            playerSnap.forEach(function(refSnap){
+                                console.log("no look here", refSnap.val().ref);
+                                opponentRef = refSnap.val().ref;
+                                return true;
+                            });
+                        });
                         assignTurn();
                         return true;
                     }
@@ -87,7 +97,6 @@ function makeLobby() {
     let dataCon = dataRef.child('players').push("monkey");  
     dataCon.onDisconnect().remove();
     let playerData = dataRef.child('players').child(dataCon.path.n[3]);
-    console.log(playerData);
     playerData.update({
         ref: JSON.stringify(userRef),
     });
@@ -102,24 +111,62 @@ function makeLobby() {
 }
 //turn listener assignment
 function assignTurn() {
-    dataRef.child('data/turns').on("value", function(snap){
+    dataRef.child('data/turns/turn').on("value", function(snap){
         //when move made, take snap data to get turn data,
         //compare to this client's userRef
-        //if this client's userRef, set var myTurn true, else false
+        let x = snap.val();
+        if(x === JSON.stringify(userRef)) {
+            //if this client's userRef, set var myTurn true, else false
+            myTurn = true;
+            console.log("my Turn");
+        } else {
+            myTurn = false;
+            opponentRef = x;
+            console.log("Not my turn");
+            //console.log("look here ", opponentRef);
+        }
         //run function to enable/disable RPS buttons based on myTurn boolean
+        toggleButtons(myTurn);
     });
     dataRef.child('data/turns').onDisconnect().remove();
 }
 
 //change turn fx
 function changeTurn () {
+    let x;
+    let myRef = JSON.stringify(userRef);
+    //console.log("so many logs", opponentRef);
+    if (opponentRef) {
+        x = opponentRef;
+    } else {
+        x = myRef;
+    }
     dataRef.child('data/turns').update({
-        turn: JSON.stringify(userRef),
+        turn: x,
     });
 }
-    //store in data current turn by using userRef
 
-//chat listener function
+
+//this fx toggles the client's RPS buttons on/off
+function toggleButtons(bool) {
+    if(bool) {
+        var x = document.getElementById("rpsBtnGrp").querySelectorAll('button');
+        for (i = 0; i < x.length; i++) {
+            x[i].removeAttribute("disabled");
+        }
+    } else {
+        var x = document.getElementById("rpsBtnGrp").querySelectorAll('button');
+        for (i = 0; i < x.length; i++) {
+            x[i].setAttribute("disabled", "true");
+        }
+    }
+}
+//RPS button listener
+$('#rpsBtnGrp').on("click", 'button', function(){
+    changeTurn();
+});
+
+//chat submit button event listener function
 $('#enter').on("click", function(event){
     event.preventDefault();
     let str = $('#textInput').val().trim();
@@ -134,12 +181,20 @@ function changeName(str) {
     });
 }
 
+//assign a listener to DB chat message, then pass the most recent data to fx that prints to each user's window
 function assignChat() {
     dataRef.child('chat').on("value", function(snap){
-        chatUpdate(snap.val().msgBy, snap.val().lastMsg);
+        //if statement removes opponent DC console error
+        if(snap.val()) {
+            chatUpdate(snap.val().msgBy, snap.val().lastMsg);
+        } else {
+            //use that null error to print a disconnect
+            chatUpdate("System", "<span id='sysMsg'>player 2 disconnected</span>");
+        }
     });
 }
 
+//parse for commands, if not command, send to database to be read
 function chatPrint(name, str) {
     str = parseInput(str);
     if(str !== false) {
@@ -149,6 +204,8 @@ function chatPrint(name, str) {
         });
     }//end if
 }
+
+//take input and add it to the chat window
 function chatUpdate(name, str) {
     let chatBox = $('#chat');
     // chatBox.append('<p>' + name + ': ' + str + '</p>');

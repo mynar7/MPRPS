@@ -8,13 +8,23 @@
     <link rel="stylesheet" href="./assets/style.css">
 </head>
 <body>
-    <ul class="chat" id="chat"></ul>
+    <div class="rps" id="rps">
+        <div class="rpsBtnGrp" id="rpsBtnGrp">
+            <button>Rock</button>
+            <button>Paper</button>
+            <button>Scissors</button>
+        </div>
+    </div>
+    <div class="chatWrapper">
 
-    <form>
-        <input type="text" id="textInput">
-        <button type="submit" id="enter">Submit</button>
-        <button type="submit">Reconnect</button>
-    </form>
+        <ul class="chat" id="chat"></ul>
+        
+        <form>
+            <input type="text" id="textInput">
+            <button type="submit" id="enter">Submit</button>
+            <button type="submit">Reconnect</button>
+        </form>
+    </div><!--end chat wrapper-->
 
     <!-- jQuery CDN -->
     <script
