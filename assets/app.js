@@ -41,6 +41,8 @@ userCons.on("value", function(userList){
                 con.onDisconnect().remove();
                 //clear all lobby data when this user disconnects
                 dataRef.onDisconnect().remove();
+                assignChat();                
+                chatPrint(userName, "is connected");
 
             } else {
                 let lobbied = false;
@@ -51,10 +53,12 @@ userCons.on("value", function(userList){
                         con.onDisconnect().remove();
                         userRef = db.ref('/lobbies/' + con.path.n[1] + '/' + con.path.n[2]);
                         userName = con.path.n[2].slice(14)
-                        changeName(userName);                        
+                        changeName(userName);
                         dataRef = db.ref('/lobbyData/dataFor' + con.path.n[1]);
                         dataRef.onDisconnect().remove();
                         lobbied = true;
+                        assignChat();                        
+                        chatPrint(userName, "is connected");                                     
                         return true;
                     }
                 });
@@ -65,16 +69,17 @@ userCons.on("value", function(userList){
                     lobbyRef = db.ref('/lobbies/' + con.path.n[1]);
                     userRef = db.ref('/lobbies/' + con.path.n[1] + '/' + con.path.n[2]);
                     userName = con.path.n[2].slice(14)
-                    changeName(userName);                
+                    changeName(userName);
                     dataRef = db.ref('/lobbyData/dataFor' + con.path.n[1]);
                     dataRef.onDisconnect().remove();
+                    assignChat();                    
+                    chatPrint(userName, "is connected");                               
                 }//end if lobbied
             }//end else
         }); //end lobbies.once
     
-    }
+    } //end if userList.val
 }); //end userCons call
-
 function changeName(str) {
     userName = str;
     userRef.update({
@@ -82,3 +87,26 @@ function changeName(str) {
     });
 }
 
+function assignChat() {
+    dataRef.child('chat').on("value", function(snap){
+        chatUpdate(snap.val().msgBy, snap.val().lastMsg);
+    });
+}
+
+function chatPrint(name, str) {
+    dataRef.child('chat').update({
+        lastMsg: str,
+        msgBy: name
+    });
+}
+function chatUpdate(name, str) {
+    let chatBox = $('#chat');
+    chatBox.append('<br>' + name + ': ' + str);
+}
+ 
+$('#enter').on("click", function(event){
+    event.preventDefault();
+    let str = $('#textInput').val().trim();
+    chatPrint(userName, str);
+    $('#textInput').val("");
+});
