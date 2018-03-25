@@ -1,4 +1,44 @@
+header {
+    width: 100%;
+    text-align: center;
+    padding: 10px 0;
+}
+h1 {
+    font-weight: bolder;
+    font-size: 1.5em;
+}
+.content {
+    max-width: 960px;
+    margin: auto;
+}
+
+.rps {
+    max-width: 400px;
+    margin: auto;
+    background-color: turquoise;
+    min-height: 150px;
+}
+.score {
+    margin: 10px;
+}
+.status {
+    min-height: 80px;
+}
+.rpsBtnGrp {
+    width: 100%;
+}
+.rpsBtnGrp button {
+    display: block;
+    float: left;
+    margin: 0;
+    width: 33.33%;
+}
+.chatWrapper {
+    max-width: 400px;
+    margin: auto;
+}
 #chat {
+    clear: both;
     height: 250px;
     /* makes the scroll bar stay at the bottom */
     overflow: auto;
@@ -7,12 +47,10 @@
     background-color: black;
     color: yellow;
 }
-
+#textInput {
+    width: 80%;
+}
 #sysMsg {
     color: red;
     font-weight: 900;
-}
-
-ul {
-    list-style-type: none;
 }

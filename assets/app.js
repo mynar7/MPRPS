@@ -69,7 +69,6 @@ userCons.on("value", function(userList){
                         //grab opponent reference
                         dataRef.child('players').once("value", function(playerSnap){
                             playerSnap.forEach(function(refSnap){
-                                console.log("no look here", refSnap.val().ref);
                                 opponentRef = refSnap.val().ref;
                                 return true;
                             });
