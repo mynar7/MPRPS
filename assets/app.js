@@ -330,6 +330,12 @@ function changeName(str) {
         name: userName
     });
 }
+//clear chat
+$('#clear').on("click", function(event){
+    event.preventDefault();
+    $('#chat').empty();
+});
+
 //assign a listener to DB scores
 function assignScore() {
     dataRef.child('data/scores').on("value", function(snap){
