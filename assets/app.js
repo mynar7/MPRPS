@@ -487,7 +487,7 @@ function parseInput(str) {
             command = str.slice(1, index)
         }
         let helpText = "<span id='sysMsg'><br>Commands:<br>/help : get list of commands<br>/name -new name- : change user name<br>/roll # : rolls a # sided die (if # omitted, # is 20)</span>";
-        switch(command) {
+        switch(command.toLowerCase()) {
             case "name":
                 let newName = str.slice(index + 1);
                 if(index == -1) {
