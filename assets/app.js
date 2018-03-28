@@ -12,10 +12,11 @@ firebase.initializeApp(config);
 let db = firebase.database();
 //declare variables
 let userName;
+let choice;
 let userId;
 let dataRef;
 let userRef;
-let opponentRef;
+let opponentId;
 let lobbyRef;
 let winCount;
 let lossCount;
@@ -38,7 +39,7 @@ userCons.on("value", function(userList){
                 lobbiesSnap.forEach(function(lobbyUsers){
                     if (lobbyUsers.numChildren() === 1) {
                         //add to here, then return true to break forEach
-                        let con = lobbyUsers.ref.push("mama");
+                        let con = lobbyUsers.ref.push(true);
                         lobbyRef = db.ref('/lobbies/' + con.path.n[1]);
                         //assign reference for this user's data
                         userRef = db.ref('/lobbies/' + con.path.n[1] + '/' + con.path.n[2]);
@@ -49,11 +50,11 @@ userCons.on("value", function(userList){
                         changeName(userName);
                         //assign ref for data for this lobby
                         dataRef = db.ref('/lobbyData/dataFor' + con.path.n[1]);
-                        let dataCon = dataRef.child('players').push("monkey");  
+                        let dataCon = dataRef.child('players').push(true);  
                         dataCon.onDisconnect().remove();
                         let playerData = dataRef.child('players').child(dataCon.path.n[3]);
                         playerData.update({
-                            ref: JSON.stringify(userRef),
+                            Id: userId,
                         });
                         //remove this user from lobby when disconnect
                         con.onDisconnect().remove();
@@ -69,7 +70,7 @@ userCons.on("value", function(userList){
                         //grab opponent reference
                         dataRef.child('players').once("value", function(playerSnap){
                             playerSnap.forEach(function(refSnap){
-                                opponentRef = refSnap.val().ref;
+                                opponentId = refSnap.val().Id;
                                 return true;
                             });
                         });
@@ -89,7 +90,7 @@ userCons.on("value", function(userList){
 
 function makeLobby() {
     //make a lobby and push to it to create a user
-    let con = db.ref('/lobbies/lobby' + Date.now()).push("meatball");
+    let con = db.ref('/lobbies/lobby' + Date.now()).push(true);
     //assign reference for this lobby
     lobbyRef = db.ref('/lobbies/' + con.path.n[1]);
     //assign reference for this user's data
@@ -101,11 +102,11 @@ function makeLobby() {
     changeName(userName);
     //assign ref for data for this lobby
     dataRef = db.ref('/lobbyData/dataFor' + con.path.n[1]);
-    let dataCon = dataRef.child('players').push("monkey");  
+    let dataCon = dataRef.child('players').push(true);  
     dataCon.onDisconnect().remove();
     let playerData = dataRef.child('players').child(dataCon.path.n[3]);
     playerData.update({
-        ref: JSON.stringify(userRef),
+        Id: userId,
     });
     //remove this user from lobby when disconnect
     con.onDisconnect().remove();
@@ -123,14 +124,14 @@ function assignTurn() {
         //when move made, take snap data to get turn data,
         //compare to this client's userRef
         let x = snap.val();
-        if(x === JSON.stringify(userRef)) {
+        if(x === userId) {
             //if this client's userRef, set var myTurn true, else false
             myTurn = true;
             $('#status').empty();
             $('<li>').html("It's your turn.").appendTo("#status");
         } else {
             myTurn = false;
-            opponentRef = x;
+            opponentId = x;
         }
         //run function to enable/disable RPS buttons based on myTurn boolean
         toggleButtons(myTurn);
@@ -141,11 +142,10 @@ function assignTurn() {
 //change turn fx
 function changeTurn () {
     let x;
-    let myRef = JSON.stringify(userRef);
-    if (opponentRef) {
-        x = opponentRef;
+    if (opponentId) {
+        x = opponentId;
     } else {
-        x = myRef;
+        x = userId;
     }
     dataRef.child('data/turns').update({
         turn: x,
@@ -161,7 +161,7 @@ function toggleButtons(bool) {
             x[i].removeAttribute("disabled");
         }
     } else {
-        if(opponentRef) {
+        if(opponentId) {
             $('<li>').html("Waiting for Opponent.").appendTo("#status");                    
         }
         var x = document.getElementById("rpsBtnGrp").querySelectorAll('button');
@@ -173,7 +173,7 @@ function toggleButtons(bool) {
 //RPS button listener
 $('#rpsBtnGrp').on("click", 'button', function(){
     //capture which choice
-    let choice = $(this).html().toLowerCase();
+    choice = $(this).html().toLowerCase();
     //send choice to status
     $('#status').empty();
     $('<li>').html("Your choice: " + choice.toUpperCase()).appendTo('#status');
@@ -185,7 +185,7 @@ $('#rpsBtnGrp').on("click", 'button', function(){
             //send opponent choice to DOM
             $('<li>').html("Opponent chose: " + oppChoice.toUpperCase()).appendTo('#status');
             //return bool or other for win/lose
-            //handle win/loss here. use client side counters for win/lose... you can't
+            //call outcome
             outcome(rpsLogic(choice, oppChoice));            
             dataRef.child('data/choices').remove();
         } else {
@@ -201,7 +201,6 @@ $('#rpsBtnGrp').on("click", 'button', function(){
 
 //outcome logic
 function outcome(str) {
-    let x = JSON.stringify(userRef);
     //call server and update score
     dataRef.child('data/scores').once("value", function(snap){
         if(snap.val()){
@@ -210,10 +209,7 @@ function outcome(str) {
                 if(userId == snapChild.key) {
                     let winNum = snapChild.val().wins;
                     let lossNum = snapChild.val().losses;
-                    let drawNum = snapChild.val().draws;
-                    console.log("wins: " + winNum);
-                    console.log("losses: " + lossNum);
-                    console.log("draws: " + drawNum);                    
+                    let drawNum = snapChild.val().draws;                 
                     switch(str) {
                         case 'win':
                             winNum++;
@@ -316,6 +312,40 @@ function rpsLogic(user, opponent) {
     } //end user switch
 } //end rps game logic
 
+function rpsLogicRev(str) {
+    switch(str) {
+        case 'win':
+            switch(choice) {
+                case 'rock':
+                    return 'scissors';
+                break;
+                case 'paper':
+                    return 'rock';
+                break;
+                case 'scissors':
+                    return 'paper';
+                break;
+            } //end win case switch
+        break;
+        case 'loss':
+            switch(choice) {
+                case 'rock':
+                    return 'paper';
+                break;
+                case 'paper':
+                    return 'scissors';
+                break;
+                case 'scissors':
+                    return 'rock';
+                break;
+            } //end loss case switch
+        break;
+        case 'draw':
+            return str;
+        break;
+    }//end switch
+}
+
 //chat submit button event listener function
 $('#enter').on("click", function(event){
     event.preventDefault();
@@ -348,14 +378,23 @@ function assignScore() {
                 $('#losses').html("Losses: " + losses);
                 $('#draws').html("Draws: " + draws);
                 if(winCount !== wins) {
+                    if(!myTurn) {
+                        $('#status li:nth-child(2)').html("Opponent chose: " + rpsLogicRev("win").toUpperCase());
+                    }
                     $('<li>').html("You won!").appendTo("#status");
                     turnNotice();
                 }
                 if(lossCount !== losses) {
+                    if(!myTurn) {
+                        $('#status li:nth-child(2)').html("Opponent chose: " + rpsLogicRev("loss").toUpperCase());
+                    }
                     $('<li>').html("You lost!").appendTo("#status");
                     turnNotice();
                 }
                 if(drawCount !== draws) {
+                    if(!myTurn) {
+                        $('#status li:nth-child(2)').html("Opponent chose: " + choice.toUpperCase());
+                    }
                     $('<li>').html("It was a draw!").appendTo("#status");
                     turnNotice();
                 }
@@ -366,6 +405,7 @@ function assignScore() {
         });
     });
 }
+
 function turnNotice() {
     if(myTurn) {
         $('<li>').html("It's your turn.").appendTo("#status");                    
