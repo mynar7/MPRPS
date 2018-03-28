@@ -11,12 +11,43 @@ h1 {
     max-width: 960px;
     margin: auto;
 }
-
+.flash {
+    display:none;
+    max-width: 400px;
+    min-height: 170px;
+    max-height: 170px;
+    margin: auto;
+    text-align: center;
+    font-size: 2.2em;
+    background-color: turquoise;
+}
+.flash li:first-child {
+    display: none;    
+    text-align: left;
+}
+.flash li:nth-child(2) {
+    display: none;    
+    position: relative;
+    top: 50px;
+    margin-left: -50px;
+}
+.flash li:nth-child(3) {
+    display: none;
+    position: relative;
+    top: 100px;   
+    text-align: right;
+}
+.flash li:nth-child(4) {
+    display: none;
+    position: relative;
+    top: 40px;
+    font-size: 2.4em;
+}
 .rps {
     max-width: 400px;
+    min-height: 160px;
     margin: auto;
     background-color: turquoise;
-    min-height: 150px;
 }
 .score {
     margin: 10px;

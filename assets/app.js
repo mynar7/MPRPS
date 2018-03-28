@@ -118,6 +118,7 @@ function makeLobby() {
     chatPrint(userName, "Started Lobby");
     assignTurn();
 }
+
 //turn listener assignment
 function assignTurn() {
     dataRef.child('data/turns/turn').on("value", function(snap){
@@ -366,6 +367,24 @@ $('#clear').on("click", function(event){
     $('#chat').empty();
 });
 
+function boardToggle() {
+    let flash = 200;
+    $('#rps').hide();
+    $('#flash').show();
+    $('#flash li:nth-child(1)').fadeToggle(flash, function(){$('#flash li:nth-child(1)').fadeToggle(flash)});
+    setTimeout(function(){
+        $('#flash li:nth-child(2)').fadeToggle(flash, function(){$('#flash li:nth-child(2)').fadeToggle(flash)});
+    }, flash * 2);
+    setTimeout(function(){
+        $('#flash li:nth-child(3)').fadeToggle(flash, function(){$('#flash li:nth-child(3)').fadeToggle(flash)});
+    }, flash * 4);
+    setTimeout(function(){
+        $('#flash li:nth-child(4)').fadeToggle(flash, function(){$('#flash li:nth-child(4)').fadeToggle(flash)});
+    }, flash * 6);
+    setTimeout(function(){$('#flash').hide()}, flash * 8);
+    setTimeout(function(){$('#rps').fadeToggle('slow')}, flash * 8);
+}
+
 //assign a listener to DB scores
 function assignScore() {
     dataRef.child('data/scores').on("value", function(snap){
@@ -378,6 +397,7 @@ function assignScore() {
                 $('#losses').html("Losses: " + losses);
                 $('#draws').html("Draws: " + draws);
                 if(winCount !== wins) {
+                    boardToggle()
                     if(!myTurn) {
                         $('#status li:nth-child(2)').html("Opponent chose: " + rpsLogicRev("win").toUpperCase());
                     }
@@ -385,6 +405,7 @@ function assignScore() {
                     turnNotice();
                 }
                 if(lossCount !== losses) {
+                    boardToggle()
                     if(!myTurn) {
                         $('#status li:nth-child(2)').html("Opponent chose: " + rpsLogicRev("loss").toUpperCase());
                     }
@@ -392,6 +413,7 @@ function assignScore() {
                     turnNotice();
                 }
                 if(drawCount !== draws) {
+                    boardToggle()
                     if(!myTurn) {
                         $('#status li:nth-child(2)').html("Opponent chose: " + choice.toUpperCase());
                     }
@@ -421,7 +443,8 @@ function assignChat() {
             chatUpdate(snap.val().msgBy, snap.val().lastMsg);
         } else {
             //use that null error to print a disconnect
-            chatUpdate("System", "<span id='sysMsg'>player 2 disconnected</span>");
+            $('#status').empty();
+            chatUpdate("System", "<span id='sysMsg'>player disconnected</span>");
         }
     });
 }
